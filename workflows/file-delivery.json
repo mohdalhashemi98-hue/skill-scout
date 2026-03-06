@@ -1,0 +1,413 @@
+{
+  "name": "Skill Scout - File Delivery",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [220, 300],
+      "webhookId": "file-delivery-webhook",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Receives incoming Telegram messages. This workflow handles /file commands."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the incoming message and extract file command\nconst message = $input.first().json.message;\nconst text = message.text || '';\nconst chatId = message.chat.id;\nconst userId = message.from.id;\nconst username = message.from.username || '';\n\n// Check if this is a /file command\nconst isFileCommand = text.startsWith('/file ');\nconst filename = isFileCommand ? text.substring(6).trim() : null;\n\n// Normalize filename: strip path traversal attempts\nconst sanitizedFilename = filename\n  ? filename.replace(/\\.\\.\\//g, '').replace(/\\//g, '').trim()\n  : null;\n\nreturn [{\n  json: {\n    chatId,\n    userId: userId.toString(),\n    username,\n    originalText: text,\n    isFileCommand,\n    filename: sanitizedFilename,\n    platform: 'telegram'\n  }\n}];"
+      },
+      "id": "parse-command",
+      "name": "Parse File Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "notes": "Extracts and sanitizes the filename from the /file command. Blocks path traversal attempts."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-file-cmd",
+              "leftValue": "={{ $json.isFileCommand }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            },
+            {
+              "id": "has-filename",
+              "leftValue": "={{ $json.filename }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "is-file-command",
+      "name": "Valid /file Command?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, 300],
+      "notes": "Routes valid /file commands to the file search path. Other messages are ignored."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse File Command').item.json.chatId }}",
+        "text": "Please use the command format: `/file filename.ext`\n\nExample: `/file report.pdf`",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-usage-help",
+      "name": "Send Usage Help",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [880, 500],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Sends a usage hint when the command format is invalid."
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/files?client_id=eq.{{ $env.CLIENT_ID }}&filename=ilike.*{{ $('Parse File Command').item.json.filename }}*&select=id,filename,file_path,file_size,mime_type&limit=5",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            }
+          ]
+        }
+      },
+      "id": "search-file-db",
+      "name": "Search File in Database",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 160],
+      "notes": "Queries the Supabase files table for matching filenames (case-insensitive partial match)."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check search results and find the best match\nconst results = $input.first().json;\nconst requestedFilename = $('Parse File Command').item.json.filename;\nconst chatId = $('Parse File Command').item.json.chatId;\n\nlet fileFound = false;\nlet bestMatch = null;\nlet allFiles = [];\n\nif (Array.isArray(results) && results.length > 0) {\n  // Try exact match first\n  bestMatch = results.find(f => f.filename.toLowerCase() === requestedFilename.toLowerCase());\n  \n  // Fall back to first partial match\n  if (!bestMatch) {\n    bestMatch = results[0];\n  }\n  \n  fileFound = true;\n  allFiles = results.map(f => f.filename);\n}\n\nreturn [{\n  json: {\n    chatId,\n    fileFound,\n    bestMatch,\n    allFiles,\n    requestedFilename,\n    resultCount: Array.isArray(results) ? results.length : 0\n  }\n}];"
+      },
+      "id": "evaluate-results",
+      "name": "Evaluate Search Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 160],
+      "notes": "Finds the best matching file from search results. Prefers exact matches, falls back to partial."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "file-found",
+              "leftValue": "={{ $json.fileFound }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "file-exists",
+      "name": "File Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1320, 160],
+      "notes": "Routes to file download and send if found, or to AI-generated help if not."
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/storage/v1/object/client-files/{{ $json.bestMatch.file_path }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-file",
+      "name": "Download File from Storage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 40],
+      "notes": "Downloads the file binary from Supabase Storage."
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('Evaluate Search Results').item.json.chatId }}",
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "caption": "={{ 'Here is your file: ' + $('Evaluate Search Results').item.json.bestMatch.filename }}",
+          "fileName": "={{ $('Evaluate Search Results').item.json.bestMatch.filename }}"
+        }
+      },
+      "id": "send-file-telegram",
+      "name": "Send File via Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1760, 40],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Sends the file as a document attachment in Telegram."
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful file assistant. The user requested a file but it was not found. Suggest what files might be available or how to find the right file. Be concise."
+        },
+        "promptType": "define",
+        "text": "=The user asked for a file named \"{{ $json.requestedFilename }}\" but it was not found in the system. There are {{ $json.resultCount }} files in the system. Please provide a helpful response suggesting what the user could try instead."
+      },
+      "id": "ai-file-help",
+      "name": "AI File Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [1540, 300],
+      "notes": "Generates a helpful response when the requested file is not found."
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514",
+        "options": {
+          "maxTokensToSample": 512,
+          "temperature": 0.5
+        }
+      },
+      "id": "claude-model-file",
+      "name": "Claude (File Help)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [1440, 480],
+      "credentials": {
+        "anthropicApi": {
+          "id": "ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API"
+        }
+      },
+      "notes": "Claude model for generating file-not-found help messages."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Evaluate Search Results').item.json.chatId }}",
+        "text": "={{ $json.output || $json.text || 'Sorry, the requested file was not found. Please check the filename and try again.' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-not-found",
+      "name": "Send Not Found Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1760, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Sends the AI-generated file-not-found help message."
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/increment_usage",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_client_id: $env.CLIENT_ID, p_files_trans: 1, p_commands_exec: 1, p_messages_sent: 1, p_messages_recv: 1 }) }}"
+      },
+      "id": "log-file-transfer",
+      "name": "Log File Transfer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 40],
+      "notes": "Records the file transfer in usage stats.",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/log_audit_event",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_client_id: $env.CLIENT_ID, p_action: 'file_delivered', p_details: { filename: $('Evaluate Search Results').item.json.bestMatch ? $('Evaluate Search Results').item.json.bestMatch.filename : $('Parse File Command').item.json.filename, requested_by: $('Parse File Command').item.json.userId, platform: 'telegram', found: $('Evaluate Search Results').item.json.fileFound } }) }}"
+      },
+      "id": "audit-log",
+      "name": "Audit Log Entry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 180],
+      "notes": "Creates an audit trail for the file delivery attempt.",
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [{ "node": "Parse File Command", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse File Command": {
+      "main": [
+        [{ "node": "Valid /file Command?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Valid /file Command?": {
+      "main": [
+        [{ "node": "Search File in Database", "type": "main", "index": 0 }],
+        [{ "node": "Send Usage Help", "type": "main", "index": 0 }]
+      ]
+    },
+    "Search File in Database": {
+      "main": [
+        [{ "node": "Evaluate Search Results", "type": "main", "index": 0 }]
+      ]
+    },
+    "Evaluate Search Results": {
+      "main": [
+        [{ "node": "File Found?", "type": "main", "index": 0 }]
+      ]
+    },
+    "File Found?": {
+      "main": [
+        [{ "node": "Download File from Storage", "type": "main", "index": 0 }],
+        [{ "node": "AI File Assistant", "type": "main", "index": 0 }]
+      ]
+    },
+    "Download File from Storage": {
+      "main": [
+        [{ "node": "Send File via Telegram", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send File via Telegram": {
+      "main": [
+        [
+          { "node": "Log File Transfer", "type": "main", "index": 0 },
+          { "node": "Audit Log Entry", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Claude (File Help)": {
+      "ai_languageModel": [
+        [{ "node": "AI File Assistant", "type": "ai_languageModel", "index": 0 }]
+      ]
+    },
+    "AI File Assistant": {
+      "main": [
+        [{ "node": "Send Not Found Reply", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Not Found Reply": {
+      "main": [
+        [{ "node": "Audit Log Entry", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "telegram" },
+    { "name": "file-delivery" },
+    { "name": "production" }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-06T00:00:00.000Z",
+  "versionId": "1"
+}
