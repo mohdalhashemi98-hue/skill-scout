@@ -102,10 +102,11 @@ export default function Industries() {
         </motion.div>
 
         {/* Industry Cards */}
-        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div ref={gridRef} role="list" className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {industries.map((industry) => (
             <div
               key={industry.name}
+              role="listitem"
               className="glass glass-hover p-8 group"
             >
               <div className="flex items-start gap-5">

@@ -61,11 +61,13 @@ export default function Testimonials() {
         {/* Testimonial Cards */}
         <div
           ref={gridRef}
+          role="list"
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           {testimonials.map((t) => (
             <div
               key={t.name}
+              role="listitem"
               className="glass glass-hover p-6 flex flex-col"
             >
               <Quote

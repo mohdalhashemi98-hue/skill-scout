@@ -30,7 +30,7 @@ const tiers: PricingTier[] = [
       "Email support",
     ],
     highlighted: false,
-    cta: "Start Free Trial",
+    cta: "Get Started",
   },
   {
     name: "Professional",

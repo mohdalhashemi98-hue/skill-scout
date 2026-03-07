@@ -75,10 +75,11 @@ export default function Features() {
         </motion.div>
 
         {/* Feature Cards Grid */}
-        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div ref={gridRef} role="list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature) => (
             <div
               key={feature.title}
+              role="listitem"
               className="glass glass-hover p-6 flex flex-col"
             >
               {/* Icon + Tag */}

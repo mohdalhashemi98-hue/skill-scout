@@ -91,8 +91,8 @@ export default function Comparison() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="glass rounded-2xl overflow-hidden"
         >
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto" role="region" aria-label="Scrollable comparison table" tabIndex={0}>
+            <table className="w-full text-sm" aria-label="Product feature comparison">
               <thead>
                 <tr className="border-b border-white/10">
                   <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-muted/40">
@@ -140,6 +140,9 @@ export default function Comparison() {
               </tbody>
             </table>
           </div>
+          <p className="text-xs text-muted/30 text-center mt-2 md:hidden">
+            Swipe to see all features →
+          </p>
         </motion.div>
       </div>
     </section>

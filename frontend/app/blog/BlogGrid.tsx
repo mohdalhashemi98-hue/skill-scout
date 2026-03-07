@@ -7,6 +7,16 @@ import type { BlogPost } from "@/lib/blog";
 export default function BlogGrid({ posts }: { posts: BlogPost[] }) {
   const gridRef = useScrollReveal<HTMLDivElement>({ childSelector: ".glass" });
 
+  if (posts.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="glass rounded-2xl p-8 text-center max-w-md">
+          <p className="text-muted/40 text-lg">No posts yet. Check back soon.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {posts.map((post) => (

@@ -70,9 +70,9 @@ export default function HowItWorks() {
         </motion.div>
 
         {/* Steps */}
-        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+        <div ref={gridRef} role="list" className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
           {steps.map((step, index) => (
-            <div key={step.number} className="relative group">
+            <div key={step.number} role="listitem" className="relative group">
               {/* Connector line (desktop) */}
               {index < steps.length - 1 && (
                 <div className="hidden md:block absolute top-16 left-[calc(50%+60px)] w-[calc(100%-60px)] h-px">

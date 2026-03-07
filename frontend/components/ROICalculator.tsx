@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Calculator, TrendingUp } from "lucide-react";
 
+const PROFESSIONAL_MONTHLY_COST = 500;
+
 export default function ROICalculator() {
   const [teamSize, setTeamSize] = useState(5);
   const [hoursPerWeek, setHoursPerWeek] = useState(10);
@@ -12,7 +14,7 @@ export default function ROICalculator() {
   const monthlyCost = teamSize * hoursPerWeek * 4.33 * hourlyRate;
   const monthlySavings = monthlyCost * 0.7;
   const annualSavings = monthlySavings * 12;
-  const skillscoutCost = 500 * 12;
+  const skillscoutCost = PROFESSIONAL_MONTHLY_COST * 12;
   const netROI = annualSavings - skillscoutCost;
 
   return (
@@ -71,7 +73,14 @@ export default function ROICalculator() {
                   value={teamSize}
                   onChange={(e) => setTeamSize(Number(e.target.value))}
                   aria-label="Team size"
+                  aria-valuemin={1}
+                  aria-valuemax={50}
+                  aria-valuenow={teamSize}
                 />
+                <div className="flex justify-between text-xs text-muted/30 mt-1">
+                  <span>1</span>
+                  <span>50</span>
+                </div>
               </div>
 
               <div>
@@ -89,7 +98,14 @@ export default function ROICalculator() {
                   value={hoursPerWeek}
                   onChange={(e) => setHoursPerWeek(Number(e.target.value))}
                   aria-label="Hours spent on manual tasks per week"
+                  aria-valuemin={1}
+                  aria-valuemax={40}
+                  aria-valuenow={hoursPerWeek}
                 />
+                <div className="flex justify-between text-xs text-muted/30 mt-1">
+                  <span>1</span>
+                  <span>40</span>
+                </div>
               </div>
 
               <div>
@@ -110,7 +126,14 @@ export default function ROICalculator() {
                   value={hourlyRate}
                   onChange={(e) => setHourlyRate(Number(e.target.value))}
                   aria-label="Average hourly rate"
+                  aria-valuemin={20}
+                  aria-valuemax={200}
+                  aria-valuenow={hourlyRate}
                 />
+                <div className="flex justify-between text-xs text-muted/30 mt-1">
+                  <span>20</span>
+                  <span>200</span>
+                </div>
               </div>
             </div>
           </motion.div>
