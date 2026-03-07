@@ -1,11 +1,66 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import SplineFallback from "./SplineFallback";
+import ParticleBackground from "./ParticleBackground";
+import { useTypewriter, TypewriterLine } from "@/hooks/useTypewriter";
 
-// Set NEXT_PUBLIC_SPLINE_SCENE_URL in .env.local to enable 3D hero.
-// When set, install @splinetool/react-spline and uncomment the dynamic import below.
 const splineUrl = process.env.NEXT_PUBLIC_SPLINE_SCENE_URL;
+
+const terminalLines: TypewriterLine[] = [
+  { speaker: "user", text: "Show me the latest sales report from /reports/q4" },
+  {
+    speaker: "bot",
+    text: 'Found 3 files in /reports/q4. Here\'s the summary from sales_q4_2025.csv: Total Revenue: $2.4M (+18% QoQ) | Top Channel: Enterprise Direct (42%) | Sending full report to your email now...',
+  },
+];
+
+function TerminalPreview() {
+  const lines = useMemo(() => terminalLines, []);
+  const { displayedLines, isTyping, currentSpeaker } = useTypewriter(lines);
+
+  return (
+    <div className="glass rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/5">
+      {/* Terminal Header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-surface/50">
+        <span className="h-3 w-3 rounded-full bg-accent/80" />
+        <span className="h-3 w-3 rounded-full bg-warning/80" />
+        <span className="h-3 w-3 rounded-full bg-success/80" />
+        <span className="ml-3 text-xs text-muted/30 font-mono">
+          skillscout-bot &mdash; WhatsApp
+        </span>
+      </div>
+      {/* Terminal Body */}
+      <div className="px-6 py-5 space-y-3 text-left font-mono text-sm min-h-[120px]">
+        {displayedLines.map((line, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <span
+              className={`font-semibold shrink-0 ${
+                line.speaker === "user" ? "text-primary" : "text-success"
+              }`}
+            >
+              {line.speaker === "user" ? "You:" : "Bot:"}
+            </span>
+            <span className="text-muted/80">
+              {line.text}
+              {!line.complete && (
+                <span className="cursor-blink text-white">|</span>
+              )}
+            </span>
+          </div>
+        ))}
+        {isTyping && currentSpeaker === "bot" && displayedLines.length > 0 && !displayedLines[displayedLines.length - 1]?.complete && null}
+        {isTyping && currentSpeaker === "bot" && (displayedLines.length === 0 || displayedLines[displayedLines.length - 1]?.complete) && (
+          <div className="flex items-center gap-2 pt-1">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs text-muted/30">Bot is typing...</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function Hero() {
   const shouldReduceMotion = useReducedMotion();
@@ -14,6 +69,9 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      {/* Particle background */}
+      <ParticleBackground />
+
       {/* Gradient mesh background */}
       <div className="hero-gradient" aria-hidden="true" />
 
@@ -98,51 +156,7 @@ export default function Hero() {
           transition={{ delay: 0.4, duration: 0.6 }}
           className="mx-auto max-w-2xl"
         >
-          {splineUrl ? (
-            <SplineFallback />
-          ) : (
-            <div className="glass rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/5">
-              {/* Terminal Header */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-surface/50">
-                <span className="h-3 w-3 rounded-full bg-accent/80" />
-                <span className="h-3 w-3 rounded-full bg-warning/80" />
-                <span className="h-3 w-3 rounded-full bg-success/80" />
-                <span className="ml-3 text-xs text-muted/30 font-mono">
-                  skillscout-bot &mdash; WhatsApp
-                </span>
-              </div>
-              {/* Terminal Body */}
-              <div className="px-6 py-5 space-y-3 text-left font-mono text-sm">
-                <div className="flex items-start gap-3">
-                  <span className="text-primary font-semibold shrink-0">You:</span>
-                  <span className="text-muted/80">
-                    Show me the latest sales report from /reports/q4
-                  </span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-success font-semibold shrink-0">Bot:</span>
-                  <span className="text-muted/80">
-                    Found 3 files in{" "}
-                    <span className="text-warning">/reports/q4</span>. Here&apos;s
-                    the summary from{" "}
-                    <span className="text-accent">sales_q4_2025.csv</span>:
-                    <br />
-                    <span className="text-muted/50 block mt-1">
-                      Total Revenue: $2.4M (+18% QoQ)
-                      <br />
-                      Top Channel: Enterprise Direct (42%)
-                      <br />
-                      Sending full report to your email now...
-                    </span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-xs text-muted/30">Bot is typing...</span>
-                </div>
-              </div>
-            </div>
-          )}
+          {splineUrl ? <SplineFallback /> : <TerminalPreview />}
         </motion.div>
       </div>
 
