@@ -134,7 +134,7 @@ export default function Pricing() {
                 {/* Badge */}
                 {tier.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center rounded-full bg-gradient-to-r from-primary to-accent px-4 py-1 text-xs font-bold text-white shadow-lg">
+                    <span className="inline-flex items-center rounded-full bg-gradient-to-r from-primary to-accent px-4 py-1 text-xs font-bold text-white shadow-lg shadow-primary/25 animate-pulse">
                       {tier.badge}
                     </span>
                   </div>

@@ -42,6 +42,9 @@ export default function Founder() {
                 superpowers: file access, terminal commands, and workflow
                 automation, all through the messaging apps they already use.
               </p>
+              <p className="text-sm text-muted/40 leading-relaxed mt-3">
+                Driven by the belief that every business deserves enterprise-grade AI tools — not just the ones with six-figure budgets. Building SkillScout in public, one workflow at a time.
+              </p>
             </div>
           </div>
         </motion.div>

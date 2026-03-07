@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Quote } from "lucide-react";
+import { Quote, Star } from "lucide-react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 const testimonials = [
@@ -75,11 +75,16 @@ export default function Testimonials() {
                 strokeWidth={1.5}
                 className="text-primary/40 mb-4"
               />
+              <div className="flex gap-0.5 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} className="fill-warning text-warning" />
+                ))}
+              </div>
               <p className="text-sm text-muted/60 leading-relaxed italic flex-1 mb-6">
                 &ldquo;{t.quote}&rdquo;
               </p>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white shrink-0">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold text-white shrink-0">
                   {t.initials}
                 </div>
                 <div>

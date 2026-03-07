@@ -86,6 +86,10 @@ export default function Hero() {
         aria-hidden="true"
       />
 
+      {/* Mesh gradient blur orbs */}
+      <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-primary/10 rounded-full blur-[100px] animate-float" aria-hidden="true" />
+      <div className="absolute bottom-1/3 left-1/4 w-60 h-60 bg-accent/10 rounded-full blur-[80px] animate-float" style={{ animationDelay: "3s" }} aria-hidden="true" />
+
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
         {/* Badge */}
         <motion.div

@@ -52,6 +52,32 @@ export default function RootLayout({
           <Navbar />
           <main>{children}</main>
         </LenisProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "SkillScout",
+              description:
+                "AI chatbot automation for WhatsApp & Telegram with file access and terminal commands",
+              url: BASE_URL,
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              offers: {
+                "@type": "AggregateOffer",
+                lowPrice: "199",
+                highPrice: "499",
+                priceCurrency: "USD",
+              },
+              creator: {
+                "@type": "Organization",
+                name: "SkillScout",
+                url: BASE_URL,
+              },
+            }),
+          }}
+        />
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
           <Script
             defer

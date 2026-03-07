@@ -188,6 +188,79 @@ body::before {
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* ── Card Lift on Hover ── */
+  .card-hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(106, 91, 205, 0.2), 0 0 0 1px rgba(106, 91, 205, 0.1);
+  }
+
+  /* ── Shimmer Effect ── */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(106, 91, 205, 0.08) 50%,
+      transparent 100%
+    );
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* ── Icon Scale on Group Hover ── */
+  .group-hover-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .group:hover .group-hover-icon {
+    transform: scale(1.1);
+  }
+
+  /* ── Section Entrance Animation ── */
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .reveal-up.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Gradient Border Glow ── */
+  .border-glow {
+    position: relative;
+  }
+
+  .border-glow::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(106, 91, 205, 0.4), rgba(255, 110, 97, 0.4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .border-glow:hover::before {
+    opacity: 1;
+  }
 }
 
 /* ── Animations ── */
@@ -238,6 +311,11 @@ body::before {
   50% {
     opacity: 0;
   }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* ── Range Slider ── */

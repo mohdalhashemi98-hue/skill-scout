@@ -3,6 +3,33 @@ import Hero from "@/components/Hero";
 import WhyNow from "@/components/WhyNow";
 import PageTransition from "@/components/providers/PageTransition";
 
+const TrustBadges = dynamic(() => import("@/components/TrustBadges"), {
+  loading: () => (
+    <div className="py-12" role="status" aria-busy="true">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-12 bg-surface/30 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  ),
+});
+const FAQ = dynamic(() => import("@/components/FAQ"), {
+  loading: () => (
+    <div className="py-24" role="status" aria-busy="true">
+      <div className="mx-auto max-w-3xl px-4">
+        <div className="h-8 w-48 bg-surface/50 rounded-lg animate-pulse mx-auto mb-8" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 bg-surface/30 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  ),
+});
 const Features = dynamic(() => import("@/components/Features"), {
   loading: () => (
     <div className="py-24" role="status" aria-busy="true">
@@ -148,6 +175,7 @@ export default function Home() {
   return (
     <PageTransition>
       <Hero />
+      <TrustBadges />
       <div className="section-divider" />
       <WhyNow />
       <div className="section-divider" />
@@ -158,6 +186,8 @@ export default function Home() {
       <Industries />
       <div className="section-divider" />
       <Pricing />
+      <div className="section-divider" />
+      <FAQ />
       <div className="section-divider" />
       <Comparison />
       <div className="section-divider" />
