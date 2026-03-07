@@ -1,5 +1,9 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { Link, Settings, Zap } from "lucide-react";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+
 interface Step {
   number: string;
   title: string;
@@ -14,21 +18,7 @@ const steps: Step[] = [
     title: "Connect",
     description:
       "Link your WhatsApp or Telegram account in under 2 minutes. We handle the API setup, authentication, and webhook configuration automatically.",
-    icon: (
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-      </svg>
-    ),
+    icon: <Link size={28} strokeWidth={2} />,
     accent: "from-primary to-primary/40",
   },
   {
@@ -36,47 +26,22 @@ const steps: Step[] = [
     title: "Configure",
     description:
       "Define what your bot can access: file systems, databases, APIs, or terminal commands. Set permissions and safety boundaries with our intuitive dashboard.",
-    icon: (
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24" />
-      </svg>
-    ),
+    icon: <Settings size={28} strokeWidth={2} />,
     accent: "from-accent to-accent/40",
   },
   {
     number: "03",
     title: "Automate",
     description:
-      "Your team starts chatting with the bot naturally. It reads files, runs commands, and completes tasks &mdash; all with full audit logging and security.",
-    icon: (
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-      </svg>
-    ),
+      "Your team starts chatting with the bot naturally. It reads files, runs commands, and completes tasks \u2014 all with full audit logging and security.",
+    icon: <Zap size={28} strokeWidth={2} />,
     accent: "from-success to-success/40",
   },
 ];
 
 export default function HowItWorks() {
+  const gridRef = useScrollReveal<HTMLDivElement>({ childSelector: ".group" });
+
   return (
     <section id="how-it-works" className="relative py-24 sm:py-32">
       {/* Subtle background gradient */}
@@ -84,7 +49,13 @@ export default function HowItWorks() {
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-20">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-20"
+        >
           <span className="inline-block text-xs font-semibold uppercase tracking-widest text-primary mb-4">
             Process
           </span>
@@ -96,10 +67,10 @@ export default function HowItWorks() {
             No complex integrations. No months of development. Go from
             zero to automated in under an hour.
           </p>
-        </div>
+        </motion.div>
 
         {/* Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
           {steps.map((step, index) => (
             <div key={step.number} className="relative group">
               {/* Connector line (desktop) */}
@@ -128,10 +99,9 @@ export default function HowItWorks() {
                 <h3 className="text-xl font-bold text-white mb-3">
                   {step.title}
                 </h3>
-                <p
-                  className="text-sm text-muted/50 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: step.description }}
-                />
+                <p className="text-sm text-muted/50 leading-relaxed">
+                  {step.description}
+                </p>
               </div>
             </div>
           ))}

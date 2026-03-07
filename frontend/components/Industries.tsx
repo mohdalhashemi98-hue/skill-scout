@@ -1,5 +1,9 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { Scale, Home, Activity, Truck, ShoppingCart, Check } from "lucide-react";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+
 interface Industry {
   name: string;
   description: string;
@@ -18,23 +22,7 @@ const industries: Industry[] = [
       "Summarize contracts and flag risks",
       "Auto-generate compliance checklists",
     ],
-    icon: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M4 7V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3" />
-        <polyline points="14 2 14 8 20 8" />
-        <path d="M5 12h10" />
-        <path d="M5 16h7" />
-      </svg>
-    ),
+    icon: <Scale size={24} strokeWidth={2} />,
     gradient: "from-primary/20 to-primary/5",
   },
   {
@@ -46,21 +34,7 @@ const industries: Industry[] = [
       "Schedule showings via chat",
       "Auto-update listing descriptions",
     ],
-    icon: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-        <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
+    icon: <Home size={24} strokeWidth={2} />,
     gradient: "from-accent/20 to-accent/5",
   },
   {
@@ -72,20 +46,7 @@ const industries: Industry[] = [
       "Appointment scheduling & reminders",
       "Lab result delivery & triage",
     ],
-    icon: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
+    icon: <Activity size={24} strokeWidth={2} />,
     gradient: "from-success/20 to-success/5",
   },
   {
@@ -97,33 +58,37 @@ const industries: Industry[] = [
       "Inventory level alerts & reorder",
       "Driver dispatch & route optimization",
     ],
-    icon: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="1" y="3" width="15" height="13" />
-        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-        <circle cx="5.5" cy="18.5" r="2.5" />
-        <circle cx="18.5" cy="18.5" r="2.5" />
-      </svg>
-    ),
+    icon: <Truck size={24} strokeWidth={2} />,
     gradient: "from-warning/20 to-warning/5",
+  },
+  {
+    name: "E-commerce",
+    description:
+      "Automate order tracking, inventory management, and customer support across your online storefronts.",
+    useCases: [
+      "Real-time order status via chat",
+      "Inventory alerts & restock triggers",
+      "Customer return & refund processing",
+    ],
+    icon: <ShoppingCart size={24} strokeWidth={2} />,
+    gradient: "from-primary/20 to-[#4F46E5]/5",
   },
 ];
 
 export default function Industries() {
+  const gridRef = useScrollReveal<HTMLDivElement>({ childSelector: ".glass" });
+
   return (
     <section id="industries" className="relative py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
           <span className="inline-block text-xs font-semibold uppercase tracking-widest text-primary mb-4">
             Industries
           </span>
@@ -134,10 +99,10 @@ export default function Industries() {
             Pre-built templates and integrations tailored for the industries
             that need automation most.
           </p>
-        </div>
+        </motion.div>
 
         {/* Industry Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {industries.map((industry) => (
             <div
               key={industry.name}
@@ -166,19 +131,7 @@ export default function Industries() {
                         key={useCase}
                         className="flex items-center gap-2 text-sm text-muted/40"
                       >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="text-success shrink-0"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
+                        <Check size={14} strokeWidth={2.5} className="text-success shrink-0" />
                         {useCase}
                       </li>
                     ))}

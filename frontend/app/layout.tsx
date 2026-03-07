@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import LenisProvider from "@/components/providers/LenisProvider";
 
 export const metadata: Metadata = {
   title: "SkillScout | AI Chatbots That Access Your Systems",
@@ -23,8 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-background text-muted antialiased">
-        <Navbar />
-        <main>{children}</main>
+        <LenisProvider>
+          <Navbar />
+          <main>{children}</main>
+        </LenisProvider>
       </body>
     </html>
   );

@@ -5,10 +5,11 @@ import Industries from "@/components/Industries";
 import Pricing from "@/components/Pricing";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
+import PageTransition from "@/components/providers/PageTransition";
 
 export default function Home() {
   return (
-    <>
+    <PageTransition>
       <Hero />
       <div className="section-divider" />
       <Features />
@@ -21,6 +22,6 @@ export default function Home() {
       <div className="section-divider" />
       <CTA />
       <Footer />
-    </>
+    </PageTransition>
   );
 }
