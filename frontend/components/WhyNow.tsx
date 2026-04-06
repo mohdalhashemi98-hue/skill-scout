@@ -67,7 +67,7 @@ export default function WhyNow() {
             <div key={node.date} role="listitem" className="glass glass-hover p-6 relative">
               {/* Connector line (desktop) */}
               {i < timelineNodes.length - 1 && (
-                <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-primary/30 to-transparent" />
+                <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-primary/30 to-transparent" aria-hidden="true" />
               )}
               <div className="flex items-center gap-3 mb-4">
                 <span

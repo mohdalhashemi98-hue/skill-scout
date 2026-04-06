@@ -9,16 +9,16 @@ export default function Footer() {
 
   const footerLinks = {
     Product: [
-      { label: "Features", href: "#features" },
-      { label: "Pricing", href: "#pricing" },
-      { label: "Industries", href: "#industries" },
+      { label: "Features", href: "/#features" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "Industries", href: "/#industries" },
       { label: "Roadmap", href: "/roadmap" },
     ],
     Company: [
-      { label: "About", href: "#about" },
+      { label: "About", href: "/#about" },
       { label: "Blog", href: "/blog" },
       { label: "Careers", href: "/careers" },
-      { label: "Contact", href: "#contact" },
+      { label: "Contact", href: "/#contact" },
     ],
     Legal: [
       { label: "Privacy Policy", href: "/privacy" },

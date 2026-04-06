@@ -103,7 +103,7 @@ export default function Features() {
               </p>
 
               {/* Bottom accent line */}
-              <div className="mt-5 h-px bg-gradient-to-r from-primary/30 to-transparent" />
+              <div className="mt-5 h-px bg-gradient-to-r from-primary/30 to-transparent" aria-hidden="true" />
             </div>
           ))}
         </div>

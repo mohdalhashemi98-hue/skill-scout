@@ -45,7 +45,7 @@ export default function HowItWorks() {
   return (
     <section id="how-it-works" className="relative py-24 sm:py-32">
       {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-surface/30 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-surface/30 to-transparent pointer-events-none" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -75,7 +75,7 @@ export default function HowItWorks() {
             <div key={step.number} role="listitem" className="relative group">
               {/* Connector line (desktop) */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-16 left-[calc(50%+60px)] w-[calc(100%-60px)] h-px">
+                <div className="hidden md:block absolute top-16 left-[calc(50%+60px)] w-[calc(100%-60px)] h-px" aria-hidden="true">
                   <div className="h-full bg-gradient-to-r from-white/10 to-transparent" />
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rotate-45 border-t border-r border-white/10" />
                 </div>

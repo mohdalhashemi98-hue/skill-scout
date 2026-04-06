@@ -24,9 +24,9 @@ function TerminalPreview() {
     <div className="glass rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/5">
       {/* Terminal Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-surface/50">
-        <span className="h-3 w-3 rounded-full bg-accent/80" />
-        <span className="h-3 w-3 rounded-full bg-warning/80" />
-        <span className="h-3 w-3 rounded-full bg-success/80" />
+        <span className="h-3 w-3 rounded-full bg-accent/80" aria-hidden="true" />
+        <span className="h-3 w-3 rounded-full bg-warning/80" aria-hidden="true" />
+        <span className="h-3 w-3 rounded-full bg-success/80" aria-hidden="true" />
         <span className="ml-3 text-xs text-muted/30 font-mono">
           skillscout-bot &mdash; WhatsApp
         </span>
@@ -165,7 +165,7 @@ export default function Hero() {
       </div>
 
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-10" aria-hidden="true" />
     </section>
   );
 }
