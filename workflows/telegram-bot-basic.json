@@ -1,0 +1,435 @@
+{
+  "name": "Skill Scout - Telegram Bot (AI Agent)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [220, 300],
+      "webhookId": "telegram-webhook-id",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Receives incoming Telegram messages via webhook. Configure your bot token in credentials."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract message data from Telegram webhook payload\nconst message = $input.first().json.message;\n\nconst chatId = message.chat.id;\nconst userId = message.from.id;\nconst username = message.from.username || '';\nconst firstName = message.from.first_name || '';\nconst lastName = message.from.last_name || '';\nconst messageText = message.text || '';\nconst messageId = message.message_id;\nconst timestamp = new Date(message.date * 1000).toISOString();\n\n// Detect if this is a command\nconst isCommand = messageText.startsWith('/');\nconst command = isCommand ? messageText.split(' ')[0] : null;\nconst commandArgs = isCommand ? messageText.substring(command.length).trim() : null;\n\nreturn [{\n  json: {\n    chatId,\n    userId: userId.toString(),\n    username,\n    firstName,\n    lastName,\n    fullName: `${firstName} ${lastName}`.trim(),\n    messageText,\n    messageId,\n    timestamp,\n    isCommand,\n    command,\n    commandArgs,\n    platform: 'telegram'\n  }\n}];"
+      },
+      "id": "extract-message",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "notes": "Parses Telegram payload into a clean, normalized message object."
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_client_by_api_key",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_api_key: $env.CLIENT_API_KEY }) }}"
+      },
+      "id": "auth-client",
+      "name": "Authenticate Client",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300],
+      "notes": "Validates the client API key against Supabase and fetches client configuration."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "auth-check",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-auth",
+      "name": "Client Authenticated?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 300],
+      "notes": "Routes to AI agent if client is valid, or sends unauthorized reply."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Data').item.json.chatId }}",
+        "text": "Sorry, this bot is not configured for your account. Please contact support.",
+        "additionalFields": {}
+      },
+      "id": "send-unauthorized",
+      "name": "Send Unauthorized Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1100, 500],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Sends an error message when client authentication fails."
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/conversations?client_id=eq.{{ $('Authenticate Client').item.json[0].id }}&platform=eq.telegram&external_user_id=eq.{{ $('Extract Message Data').item.json.userId }}&status=eq.active&select=*&limit=1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            }
+          ]
+        }
+      },
+      "id": "fetch-conversation",
+      "name": "Fetch Conversation History",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 160],
+      "notes": "Retrieves the active conversation for this user to provide context to the AI agent."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build conversation context for the AI agent\nconst messageData = $('Extract Message Data').item.json;\nconst clientData = $('Authenticate Client').item.json[0];\nconst conversationData = $input.first().json;\n\n// Extract recent messages for context (last 20)\nlet recentMessages = [];\nif (Array.isArray(conversationData) && conversationData.length > 0) {\n  const conv = conversationData[0];\n  if (conv.messages && Array.isArray(conv.messages)) {\n    recentMessages = conv.messages.slice(-20);\n  }\n}\n\nconst systemPrompt = `You are an AI assistant for ${clientData.company || clientData.name}. You help users via Telegram.\n\nUser info:\n- Name: ${messageData.fullName}\n- Username: @${messageData.username}\n- Platform: Telegram\n\nClient plan: ${clientData.plan}\nAvailable commands: ${(clientData.allowed_commands || []).join(', ') || 'none configured'}\n\nGuidelines:\n- Be helpful, concise, and professional\n- If the user asks for a file, use the file search tool\n- If you cannot fulfill a request, explain why clearly\n- Keep responses under 4096 characters (Telegram limit)`;\n\nreturn [{\n  json: {\n    systemPrompt,\n    userMessage: messageData.messageText,\n    recentMessages,\n    conversationId: (Array.isArray(conversationData) && conversationData.length > 0) ? conversationData[0].id : null,\n    clientId: clientData.id,\n    chatId: messageData.chatId,\n    userId: messageData.userId,\n    username: messageData.username\n  }\n}];"
+      },
+      "id": "build-context",
+      "name": "Build AI Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 160],
+      "notes": "Assembles system prompt, conversation history, and user message for the AI agent."
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "={{ $json.systemPrompt }}"
+        },
+        "promptType": "define",
+        "text": "={{ $json.userMessage }}"
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [1540, 160],
+      "notes": "Claude-powered AI agent with tool access. Processes the user message and generates a response."
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514",
+        "options": {
+          "maxTokensToSample": 2048,
+          "temperature": 0.7
+        }
+      },
+      "id": "claude-model",
+      "name": "Claude (Anthropic)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [1440, 380],
+      "credentials": {
+        "anthropicApi": {
+          "id": "ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API"
+        }
+      },
+      "notes": "Claude language model. Configure your Anthropic API key in credentials."
+    },
+    {
+      "parameters": {
+        "toolDescription": "Search for files available for the client. Input should be a search query or filename.",
+        "jsCode": "// File search tool - searches configured directory for matching files\nconst query = $input.first().json.query || $input.first().json.input || '';\nconst searchDir = $env.CLIENT_FILES_DIR || '/data/client-files';\n\n// This is a placeholder - in production, query Supabase Storage or local filesystem\nconst result = {\n  query: query,\n  searchDir: searchDir,\n  message: `Searched for \"${query}\" in client files directory. Configure CLIENT_FILES_DIR env var and implement actual file search logic.`,\n  files: []\n};\n\nreturn [{ json: result }];"
+      },
+      "id": "tool-file-search",
+      "name": "File Search Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [1560, 380],
+      "notes": "Tool for the AI agent to search for files. Implement actual file search logic for your storage backend."
+    },
+    {
+      "parameters": {
+        "toolDescription": "Make HTTP requests to external APIs. Input should be a JSON string with keys: url, method (GET/POST), headers (object), body (object).",
+        "method": "={{ $fromAI('method', 'HTTP method', 'string') }}",
+        "url": "={{ $fromAI('url', 'The URL to request', 'string') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "id": "tool-http-request",
+      "name": "HTTP Request Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [1680, 380],
+      "notes": "Allows the AI agent to make external HTTP requests for data retrieval."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format the AI response for Telegram\nconst aiOutput = $input.first().json.output || $input.first().json.text || 'Sorry, I could not generate a response.';\nconst contextData = $('Build AI Context').item.json;\n\n// Telegram message limit is 4096 characters\nlet responseText = aiOutput;\nif (responseText.length > 4096) {\n  responseText = responseText.substring(0, 4090) + '\\n...';\n}\n\nreturn [{\n  json: {\n    chatId: contextData.chatId,\n    responseText: responseText,\n    conversationId: contextData.conversationId,\n    clientId: contextData.clientId,\n    userId: contextData.userId,\n    userMessage: contextData.userMessage,\n    aiResponse: aiOutput\n  }\n}];"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 160],
+      "notes": "Truncates AI output to Telegram's 4096-char limit and prepares the reply payload."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.responseText }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-reply",
+      "name": "Send Telegram Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1980, 60],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Sends the AI-generated response back to the user in Telegram."
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/append_message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_conversation_id: $json.conversationId, p_message: { role: 'user', content: $json.userMessage, timestamp: new Date().toISOString() } }) }}"
+      },
+      "id": "log-user-message",
+      "name": "Log User Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 260],
+      "notes": "Persists the user's message to the conversation in Supabase.",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/append_message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_conversation_id: $json.conversationId, p_message: { role: 'assistant', content: $json.aiResponse, timestamp: new Date().toISOString() } }) }}"
+      },
+      "id": "log-ai-response",
+      "name": "Log AI Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 260],
+      "notes": "Persists the AI response to the conversation in Supabase.",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/increment_usage",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_client_id: $('Format Response').item.json.clientId, p_messages_sent: 1, p_messages_recv: 1, p_tokens_used: 0 }) }}"
+      },
+      "id": "increment-usage",
+      "name": "Increment Usage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 60],
+      "notes": "Updates the monthly usage counters in Supabase.",
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [{ "node": "Extract Message Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [{ "node": "Authenticate Client", "type": "main", "index": 0 }]
+      ]
+    },
+    "Authenticate Client": {
+      "main": [
+        [{ "node": "Client Authenticated?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Client Authenticated?": {
+      "main": [
+        [{ "node": "Fetch Conversation History", "type": "main", "index": 0 }],
+        [{ "node": "Send Unauthorized Reply", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Conversation History": {
+      "main": [
+        [{ "node": "Build AI Context", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build AI Context": {
+      "main": [
+        [{ "node": "AI Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [{ "node": "Format Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Claude (Anthropic)": {
+      "ai_languageModel": [
+        [{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]
+      ]
+    },
+    "File Search Tool": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "HTTP Request Tool": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          { "node": "Send Telegram Reply", "type": "main", "index": 0 },
+          { "node": "Log User Message", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Send Telegram Reply": {
+      "main": [
+        [{ "node": "Increment Usage", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log User Message": {
+      "main": [
+        [{ "node": "Log AI Response", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "telegram" },
+    { "name": "ai-agent" },
+    { "name": "production" }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-06T00:00:00.000Z",
+  "versionId": "1"
+}
