@@ -60,10 +60,11 @@ export default function WhyNow() {
         {/* Timeline */}
         <div
           ref={timelineRef}
+          role="list"
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
         >
           {timelineNodes.map((node, i) => (
-            <div key={node.date} className="glass glass-hover p-6 relative">
+            <div key={node.date} role="listitem" className="glass glass-hover p-6 relative">
               {/* Connector line (desktop) */}
               {i < timelineNodes.length - 1 && (
                 <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-primary/30 to-transparent" />

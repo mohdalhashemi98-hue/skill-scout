@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Layers } from "lucide-react";
+import Link from "next/link";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -61,12 +62,21 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-sm text-muted/40 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-sm"
-                    >
-                      {link.label}
-                    </a>
+                    {link.href.startsWith("/") ? (
+                      <Link
+                        href={link.href}
+                        className="text-sm text-muted/40 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-sm"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted/40 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-sm"
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

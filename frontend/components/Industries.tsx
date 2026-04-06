@@ -71,7 +71,7 @@ const industries: Industry[] = [
       "Customer return & refund processing",
     ],
     icon: <ShoppingCart size={24} strokeWidth={2} />,
-    gradient: "from-primary/20 to-[#4F46E5]/5",
+    gradient: "from-primary/20 to-primary/5",
   },
 ];
 

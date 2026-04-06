@@ -18,6 +18,7 @@ export default function TrustBadges() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
+          role="list"
           className="grid grid-cols-2 md:grid-cols-4 gap-6"
         >
           {badges.map((badge, index) => (
@@ -27,6 +28,7 @@ export default function TrustBadges() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
+              role="listitem"
               className="flex items-center gap-3 justify-center"
             >
               <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">

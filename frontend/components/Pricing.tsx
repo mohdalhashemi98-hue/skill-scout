@@ -119,12 +119,13 @@ export default function Pricing() {
         </div>
 
         {/* Pricing Cards */}
-        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
+        <div ref={gridRef} role="list" className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
           {tiers.map((tier) => {
             const price = annual ? tier.annualPrice : tier.monthlyPrice;
             return (
               <div
                 key={tier.name}
+                role="listitem"
                 className={`relative glass p-8 flex flex-col transition-all duration-300 hover:-translate-y-2 ${
                   tier.highlighted
                     ? "border-primary/40 shadow-lg shadow-primary/10 md:scale-105"
