@@ -4,8 +4,6 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(ScrollTrigger);
-
 interface ScrollRevealOptions {
   y?: number;
   duration?: number;
@@ -20,6 +18,8 @@ export function useScrollReveal<T extends HTMLElement>(
   const { y = 40, duration = 0.8, stagger = 0.15, childSelector } = options;
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
     const el = ref.current;
     if (!el) return;
 
@@ -27,7 +27,7 @@ export function useScrollReveal<T extends HTMLElement>(
 
     const targets = childSelector ? el.querySelectorAll(childSelector) : el;
 
-    gsap.from(targets, {
+    const tween = gsap.from(targets, {
       scrollTrigger: {
         trigger: el,
         start: "top 80%",
@@ -41,7 +41,9 @@ export function useScrollReveal<T extends HTMLElement>(
     });
 
     return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
+      const st = tween.scrollTrigger;
+      if (st) st.kill();
+      tween.kill();
     };
   }, [y, duration, stagger, childSelector]);
 
