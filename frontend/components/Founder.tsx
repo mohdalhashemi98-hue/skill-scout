@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
+import Link from "next/link";
 
 export default function Founder() {
   return (
@@ -32,19 +33,31 @@ export default function Founder() {
                 Who&apos;s Building This
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                Building the future of{" "}
-                <span className="text-gradient">business automation</span>
+                I watched businesses get{" "}
+                <span className="text-gradient">locked out overnight</span>
               </h2>
+              <p className="text-muted/50 text-base leading-relaxed mb-4">
+                In January 2026, Meta flipped a switch and thousands of
+                businesses lost their AI chatbots on WhatsApp. I&apos;d been
+                building automation tools for years, and I saw the same story
+                play out everywhere — teams that had finally started working
+                smarter were suddenly back to manual processes, scrambling to
+                find compliant alternatives that didn&apos;t exist yet.
+              </p>
               <p className="text-muted/50 text-base leading-relaxed mb-6">
-                I believe every business deserves AI tools that actually
-                integrate with their existing systems — not just another
-                chatbot that answers FAQs. SkillScout gives teams real
-                superpowers: file access, terminal commands, and workflow
-                automation, all through the messaging apps they already use.
+                That&apos;s when I started building SkillScout. Not another
+                generic chatbot — a purpose-built system that actually connects
+                to your files, your databases, your infrastructure. The kind of
+                tool I wished existed when I was helping businesses automate
+                their operations. I&apos;m building this in public because I
+                think transparency builds better products.
               </p>
-              <p className="text-sm text-muted/40 leading-relaxed mt-3">
-                Driven by the belief that every business deserves enterprise-grade AI tools — not just the ones with six-figure budgets. Building SkillScout in public, one workflow at a time.
-              </p>
+              <Link
+                href="/blog"
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Follow the journey &rarr;
+              </Link>
             </div>
           </div>
         </motion.div>

@@ -14,6 +14,13 @@ export default function Footer() {
       { label: "Industries", href: "/#industries" },
       { label: "Roadmap", href: "/roadmap" },
     ],
+    Industries: [
+      { label: "Legal", href: "/legal" },
+      { label: "Healthcare", href: "/healthcare" },
+      { label: "Real Estate", href: "/realestate" },
+      { label: "Logistics", href: "/logistics" },
+      { label: "E-commerce", href: "/ecommerce" },
+    ],
     Company: [
       { label: "About", href: "/#about" },
       { label: "Blog", href: "/blog" },
@@ -36,7 +43,7 @@ export default function Footer() {
       className="border-t border-white/5 bg-surface/20"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           {/* Brand */}
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-4">

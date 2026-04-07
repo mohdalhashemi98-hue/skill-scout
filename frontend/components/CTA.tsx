@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, CheckCircle } from "lucide-react";
+import { TRIAL_DAYS } from "@/lib/constants";
 
 export default function CTA() {
   const [submitted, setSubmitted] = useState(false);
@@ -206,7 +207,7 @@ export default function CTA() {
               </div>
               <div className="flex items-center gap-2">
                 <Check size={14} strokeWidth={2.5} className="text-success" />
-                Free 14-day trial
+                Free {TRIAL_DAYS}-day trial
               </div>
               <div className="flex items-center gap-2">
                 <Check size={14} strokeWidth={2.5} className="text-success" />

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { Scale, FileSearch, ShieldCheck, BookOpen } from "lucide-react";
 import IndustryHero from "@/components/IndustryHero";
-import IndustryUseCases from "./IndustryUseCases";
+import IndustryUseCases from "@/components/IndustryUseCases";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/providers/PageTransition";

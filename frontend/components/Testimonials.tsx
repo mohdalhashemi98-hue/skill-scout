@@ -3,33 +3,9 @@
 import { motion } from "framer-motion";
 import { Quote, Star } from "lucide-react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { getAllTestimonials } from "@/lib/testimonials";
 
-const testimonials = [
-  {
-    quote:
-      "We used to spend hours digging through folders for client documents. Now our team just asks the bot and gets the file in seconds — right in WhatsApp.",
-    name: "Sarah Chen",
-    title: "Managing Partner",
-    company: "Chen & Associates Legal",
-    initials: "SC",
-  },
-  {
-    quote:
-      "Our agents generate CMA reports through a simple chat message. It pulls market data, formats it, and sends the PDF. Clients love the speed.",
-    name: "Marcus Rivera",
-    title: "Senior Agent",
-    company: "Pacific Realty Group",
-    initials: "MR",
-  },
-  {
-    quote:
-      "Shipment tracking queries that took 15 minutes now take 15 seconds. The bot checks our systems and responds instantly. It&apos;s transformed our ops.",
-    name: "Priya Patel",
-    title: "Operations Director",
-    company: "SwiftShip Logistics",
-    initials: "PP",
-  },
-];
+const testimonials = getAllTestimonials();
 
 export default function Testimonials() {
   const gridRef = useScrollReveal<HTMLDivElement>({ childSelector: ".glass" });
@@ -80,6 +56,14 @@ export default function Testimonials() {
                   <Star key={i} size={14} className="fill-warning text-warning" />
                 ))}
               </div>
+              {t.metric && (
+                <div className="mb-3 inline-flex items-center gap-2 self-start rounded-full bg-primary/10 border border-primary/20 px-3 py-1">
+                  <span className="text-xs font-bold text-primary">{t.metric}</span>
+                  {t.metricLabel && (
+                    <span className="text-xs text-muted/40">{t.metricLabel}</span>
+                  )}
+                </div>
+              )}
               <p className="text-sm text-muted/60 leading-relaxed italic flex-1 mb-6">
                 &ldquo;{t.quote}&rdquo;
               </p>
